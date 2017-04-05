@@ -146,6 +146,8 @@ function Keyed:OnCommReceived (prefix, message, channel, sender)
 		time = tonumber(arguments[5])
 		for i = 6, #arguments do
 			if not self:isempty(arguments[i]) then
+				name, link, quality, iLevel, reqLevel, class, subclass, maxStack, equipSlot, texture, vendorPrice, itemId = GetItemInfo(arguments[i])
+				if name ~= nil or link ~= nil then return end
 				table.insert(keystones, arguments[i])
 			end
 		end
