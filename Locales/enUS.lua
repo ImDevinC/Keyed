@@ -1,5 +1,6 @@
 ﻿-- Localization file for English/United States
 local L = LibStub("AceLocale-3.0"):NewLocale("Keyed", "enUS", true)
+if not L then return end
 
 L["Version"] = "Version"
 L["Keystones in database:"] = "Keystones in database:"
