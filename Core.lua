@@ -51,7 +51,7 @@ function Keyed:OnInitialize()
 	KeystoneListFrame:RegisterForDrag("LeftButton")
 
 	-- Load Database
-	self.db = LibStub("AceDB-3.0"):New("Keyedv3DB", defaults)
+	self.db = LibStub("AceDB-3.0"):New("Keyedv4DB", defaults)
 
 	-- Register Minimap Button
 	KeyedMinimapButton:Register("Keyed", keyedLDB, self.db.profile.minimap)
