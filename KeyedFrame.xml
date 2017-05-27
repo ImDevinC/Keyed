@@ -12,10 +12,16 @@
             <Anchor point="TOPLEFT" x="10" y="-3"/>
           </Anchors>
         </FontString>
+        <FontString name="$parentMax" inherits="GameFontHighlightSmall" justifyH="CENTER" wordwrap="false">
+          <Size x="28" y="0"/>
+          <Anchors>
+            <Anchor point="LEFT" relativeTo="$parentName" relativePoint="RIGHT" x="0" y="0"/>
+          </Anchors>
+        </FontString>
         <FontString name="$parentDungeon" inherits="GameFontHighlightSmall" justifyH="LEFT">
           <Size x="188" y="14"/>
           <Anchors>
-            <Anchor point="LEFT" relativeTo="$parentName" relativePoint="RIGHT" x="0" y="0"/>
+            <Anchor point="LEFT" relativeTo="$parentMax" relativePoint="RIGHT" x="10" y="0"/>
           </Anchors>
         </FontString>
         <FontString name="$parentLevel" inherits="GameFontHighlightSmall" justifyH="CENTER" wordwrap="false">
@@ -42,12 +48,19 @@
         -- Load Locale...
         local L = LibStub("AceLocale-3.0"):GetLocale("Keyed")
         local textColor = "|cff38d14f"
+        local weeklyBest = nil
         if self.link then
         if self.depleted then textColor = "|cffe22d1d"
         elseif self.ood then textColor = "|cff7c7c7c" end
+        if self.mapName then
+        weeklyBest = L["Weekly Completed"]:gsub("$player", self.playerName):gsub("$dungeon", self.mapName):gsub("$level", self.maxLevel)
+        end
         GameTooltip:SetOwner(self, "ANCHOR_LEFT", 0, -KEYED_FRAME_PLAYER_HEIGHT)
         GameTooltip:SetHyperlink(self.link)
         GameTooltip:AddLine("\r\n" .. textColor .. L["Click to link keystone"]:gsub("$player", self.playerName) .. "|r")
+        if weeklyBest then
+        GameTooltip:AddLine("\r\n" .. weeklyBest)
+        end
         GameTooltip:Show()
         end
       </OnEnter>
@@ -109,6 +122,7 @@
     </HighlightTexture>
   </Button>
   <Frame name="KeyedFrame" toplevel="true" parent="UIParent" movable="true" enableMouse="true" hidden="true" inherits="PortraitFrameTemplate">
+    <Size x="360" y="424"/>
     <Anchors>
       <Anchor point="TOPLEFT" x="280" y="-80" />
     </Anchors>
@@ -159,7 +173,7 @@
       <Frame name="$parentInset" useParentLevel="true" inherits="InsetFrameTemplate" parentKey="Inset">
         <Anchors>
           <Anchor point="TOPLEFT" x="4" y="-80" />
-          <Anchor point="BOTTOMRIGHT" x="-6" y="26" />
+          <Anchor point="BOTTOMRIGHT" x="-2" y="26" />
         </Anchors>
       </Frame>
       <Frame name="KeystoneListFrame" setAllPoints="true">
@@ -186,15 +200,29 @@
               <OnLoad>
                 -- Load Locale...
                 local L = LibStub("AceLocale-3.0"):GetLocale("Keyed");
-                self:SetText(L["Dungeon"]);
-                KeyedFrameColumn_SetWidth(self, 175);
-                self.sortType = "dungeon";
+                self:SetText(L["Max"]);
+                KeyedFrameColumn_SetWidth(self, 38);
+                self.sortType = "max";
               </OnLoad>
             </Scripts>
           </Button>
           <Button name="KeyedFrameColumnHeader3" inherits="KeyedFrameColumnHeaderTemplate">
             <Anchors>
               <Anchor point="LEFT" relativeTo="KeyedFrameColumnHeader2" relativePoint="RIGHT" x="-2" y="0" />
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                -- Load Locale...
+                local L = LibStub("AceLocale-3.0"):GetLocale("Keyed");
+                self:SetText(L["Dungeon"]);
+                KeyedFrameColumn_SetWidth(self, 175);
+                self.sortType = "dungeon";
+              </OnLoad>
+            </Scripts>
+          </Button>
+          <Button name="KeyedFrameColumnHeader4" inherits="KeyedFrameColumnHeaderTemplate">
+            <Anchors>
+              <Anchor point="LEFT" relativeTo="KeyedFrameColumnHeader3" relativePoint="RIGHT" x="-2" y="0" />
             </Anchors>
             <Scripts>
               <OnLoad>

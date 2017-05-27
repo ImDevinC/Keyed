@@ -34,3 +34,5 @@ L["Click to toggle Keyed Interface"] = "Кликните для переключ
 L["Cathedral of Eternal Night"] = "Cathedral of Eternal Night"
 L["Return to Karazhan: Lower"] = "Return to Karazhan: Lower"
 L["Return to Karazhan: Upper"] = "Return to Karazhan: Upper"
+L["Max"] = "Best"
+L["Weekly Completed"] = "$player has completed a $dungeon $level this week"

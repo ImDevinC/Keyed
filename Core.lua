@@ -16,7 +16,11 @@ local defaults = {
 			guid = nil,
 			class = "PALADIN",
 			time = 0,
-			keystones = {}
+			keystones = {},
+			weeklybest = {
+				level = 0,
+				mapID = nil
+			}
 		}
 	}
 }
@@ -43,6 +47,7 @@ local prefix = "KEYED_17"
 local KeyedName = "|cffd6266cKeyed|r"
 local keystoneRequest = "keystones"
 local playerKeystoneRequest = "playerkeystone"
+local weeklyBestRequest = "weeklybest"
 
 function Keyed:OnInitialize()
 	-- Register "/keyed" command
@@ -132,12 +137,13 @@ function Keyed:OnCommReceived (prefix, message, channel, sender)
 	local player = ""
 	local uid = ""
 	local classFileName = ""
-
+	
 	-- Handle...
 	if arguments[1] == "request" then
 		if arguments[2] == keystoneRequest then
 			self:SendEntries(sender)		-- Send database contents...
 			self:SendKeystones(sender)		-- Send your latest keystones...
+			self:SendWeeklyBest(sender)		-- Send your weekly best...
 		end
 	elseif arguments[1] == keystoneRequest then
 		player = arguments[2]
@@ -166,6 +172,16 @@ function Keyed:OnCommReceived (prefix, message, channel, sender)
 			-- Update List...
 			KeystoneList_Update ()
 		end
+	elseif arguments[1] == weeklyBestRequest then
+		player = arguments[2]
+		uid = arguments[3]
+		local mapID = arguments[4]
+		local mythicLevel = arguments[5]
+		local time = tonumber(arguments[6])
+		if mapID and mythicLevel and self.db.factionrealm[uid].time <= time then
+			self.db.factionrealm[uid].weeklybest.mapID = mapID
+			self.db.factionrealm[uid].weeklybest.level = mythicLevel
+		end
 	end
 end
 
@@ -178,6 +194,10 @@ function Keyed:SendEntries(target)
 			message = keystoneRequest .. ";"  .. entry.name .. ";" .. entry.uid .. ";" .. entry.class .. ";" .. tostring(entry.time) .. ";"
 			for i = 1, #entry.keystones do message = message .. entry.keystones[i] .. ";" end
 			self:SendResponse(target, message)
+			if entry.weeklybest and entry.weeklybest.mapID and entry.weeklybest.level then
+				message = weeklyBestRequest .. ";" .. entry.name .. ";" ..entry.uid .. ";" .. entry.weeklybest.mapID .. ";" .. entry.weeklybest.level .. ";" .. tostring(entry.time) .. ";"
+				self:SendResponse(target, message)
+			end
 		end
 	end
 end
@@ -193,6 +213,18 @@ function Keyed:SendKeystones(target)
 		message = message .. keystones[i] .. ";"
 	end
 	self:SendResponse(target, message)
+end
+
+function Keyed:SendWeeklyBest(target)
+	-- Prepare
+	local uid = UnitGUID("player")
+	local name = UnitName("player")
+	local mapID, level = self:GetWeeklyBest()
+	
+	if level and mapID then
+		local message = weeklyBestRequest .. ";" .. name .. ";" .. uid .. ";" .. mapID .. ";" .. level .. ";" .. tostring(GetServerTime()) .. ";"
+		self:SendResponse(target, message)
+	end
 end
 
 function Keyed:FindKeystones()
@@ -222,6 +254,20 @@ function Keyed:FindKeystones()
 
 	-- Return
 	return keystones
+end
+
+function Keyed:GetWeeklyBest()
+	maps = C_ChallengeMode.GetMapTable(maps)
+	maxLevel = 0
+	mapID = nil
+	for i = 1, #maps do
+		local _,_,level = C_ChallengeMode.GetMapPlayerStats(maps[i])
+		if level and level > maxLevel then
+			maxLevel = level
+			mapID = maps[i]
+		end
+	end
+	return mapID, maxLevel
 end
 
 function Keyed:SplitString(input, separator)

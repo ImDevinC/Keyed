@@ -34,3 +34,5 @@ L["Return to Karazhan: Lower"] = "重返卡拉赞:下层"
 L["Return to Karazhan: Upper"] = "重返卡拉赞:上层"
 
 L["Click to link keystone"] = "点击建立 $player 的钥石连结"
+L["Max"] = "Best"
+L["Weekly Completed"] = "$player has completed a $dungeon $level this week"

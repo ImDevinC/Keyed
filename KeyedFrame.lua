@@ -113,14 +113,20 @@ function KeystoneList_Update ()
 			button.link = keystoneData[keystoneIndex].link
 			button.depleted = keystoneData[keystoneIndex].depleted
 			button.ood = keystoneData[keystoneIndex].ood
+			button.maxLevel = keystoneData[keystoneIndex].maxLevel
+			if keystoneData[keystoneIndex].mapID ~= nil then
+				button.mapName = GetMapNameFromID(keystoneData[keystoneIndex].mapID)
+			end
 			buttonText = _G["KeystoneListFrameButton" .. i .. "Name"];
 			buttonText:SetText(button.playerName)
 			if button.classColor then SetClass(buttonText, button.classColor) else SetNormal(buttonText) end
+			buttonText = _G["KeystoneListFrameButton" .. i .. "Max"];
+			buttonText:SetText(button.maxLevel)
 			buttonText = _G["KeystoneListFrameButton" .. i .. "Dungeon"];
 			buttonText:SetText (button.dungeon);
 			if button.depleted or button.ood then SetDepleted(buttonText) else SetHighlighted(buttonText) end
 			if showScrollBar then
-				buttonText:SetWidth (170)
+				buttonText:SetWidth (155)
 			else
 				buttonText:SetWidth (185)
 			end
@@ -134,9 +140,9 @@ function KeystoneList_Update ()
 	end
 
 	if showScrollBar then
-		KeyedFrameColumn_SetWidth (KeyedFrameColumnHeader2, 175);
+		KeyedFrameColumn_SetWidth (KeyedFrameColumnHeader3, 160);
 	else
-		KeyedFrameColumn_SetWidth (KeyedFrameColumnHeader2, 190);
+		KeyedFrameColumn_SetWidth (KeyedFrameColumnHeader3, 190);
 	end
 
 	FauxScrollFrame_Update (KeystoneListScrollFrame, numKeystones, KEYSTONES_TO_DISPLAY, KEYED_FRAME_PLAYER_HEIGHT);
@@ -157,26 +163,38 @@ function GetKeystoneData ()
 	local number = 0
 	local data = {}
 	local ood = false
+	local maxLevel = 0
+	local mapID = nil
 
 	-- Loop through database
 	if Keyed and Keyed.db.factionrealm then
 		for uid, entry in pairs (Keyed.db.factionrealm) do
-			if entry.uid and entry.name and entry.name ~= "" and entry.keystones and (#entry.keystones > 0) then
-				name, dungeon, level, id, lootable, affixes = ExtractKeystoneData (entry.keystones[1])
-				if name == nil then end
-				ood = math.floor((entry.time - keyedReset) / keyedWeek) < tuesdays
-				if not ood or KEYED_OOD then
-					number = number + 1
-					table.insert (data, {
-						name = entry.name,
-						class = entry.class,
-						dungeon = dungeon,
-						dungeonId = tonumber(id),
-						level = tonumber(level),
-						depleted = (tonumber(lootable) == 0),
-						ood = ood,
-						link = entry.keystones[1]
-					})
+			if entry.uid and entry.name and entry.name ~= "" then
+				maxLevel = 0
+				mapID = nil
+				if entry.weeklybest.level and entry.weeklybest.mapID then
+					maxLevel = entry.weeklybest.level
+					mapID = entry.weeklybest.mapID
+				end
+				if entry.keystones and (#entry.keystones > 0) then
+					name, dungeon, level, id, lootable, affixes = ExtractKeystoneData (entry.keystones[1])
+					if name == nil then end
+					ood = math.floor((entry.time - keyedReset) / keyedWeek) < tuesdays
+					if not ood or KEYED_OOD then
+						number = number + 1
+						table.insert (data, {
+							name = entry.name,
+							class = entry.class,
+							dungeon = dungeon,
+							dungeonId = tonumber(id),
+							level = tonumber(level),
+							depleted = (tonumber(lootable) == 0),
+							ood = ood,
+							link = entry.keystones[1],
+							maxLevel = maxLevel,
+							mapID = mapID
+						})
+					end
 				end
 			end
 		end
@@ -190,7 +208,7 @@ function GetKeystoneData ()
 	end
 	
 	-- Return results
-	return number, data
+	return number, data, maxLevel, mapID
 end
 
 function ExtractKeystoneData (hyperlink)
@@ -201,9 +219,14 @@ function ExtractKeystoneData (hyperlink)
 	-- Hkeystone:233:4:1:6:0:0
 	local Hitem, instMapId, plus, lootable, affixes = strsplit(':', string)
 	if not Hitem == "Hkeystone" then return nil end
-	local instanceName = L["Unknown"] .. " (" .. instMapId .. ")"
-	if INSTANCE_NAMES[tostring(instMapId)] then instanceName = INSTANCE_NAMES[tostring(instMapId)] end
+	local instanceName = GetMapNameFromID(instMapId)
 	return name, instanceName, plus, instMapId, lootable, affixes
+end
+
+function GetMapNameFromID(mapID)
+	local mapName = L["Unknown"] .. " (" .. mapID .. ")"
+	if INSTANCE_NAMES[tostring(mapID)] then mapName = INSTANCE_NAMES[tostring(mapID)] end
+	return mapName
 end
 
 function Keyed_SortKeyed (sort)
@@ -223,6 +246,8 @@ function Keyed_SortKeyed (sort)
 		KEYED_SORT_FUNCTION = Keyed_SortByDungeon
 	elseif sort == "level" then
 		KEYED_SORT_FUNCTION = Keyed_SortByLevel
+	elseif sort == "max" then
+		KEYED_SORT_FUNCTION = Keyed_SortByMax
 	end
 
 	-- Update
@@ -265,6 +290,22 @@ function Keyed_SortByLevel (a, b)
 		result = a.name > b.name				-- ... if level is same, compare by name...
 		if a.name == b.name then
 			result = a.dungeon > b.dungeon		-- ... if name is same, compare by dungeon
+		end
+	end
+
+	-- Descend?
+	if not KEYED_SORT_ORDER_DESCENDING then result = not result end
+	return result
+end
+
+function Keyed_SortByMax (a, b)
+	local lv1 = tonumber(a.maxLevel);
+	local lv2 = tonumber(b.maxLevel);
+	local result = lv1 < lv2;					-- Compare by highest first...
+	if a.maxLevel == b.maxLevel then
+		result = a.level > b.level				-- ... if level is same, compare by level...
+		if a.level == b.level then
+			result = a.name > b.name		-- ... if level is same, compare by name
 		end
 	end
 
