@@ -169,17 +169,18 @@ function GetKeystoneData ()
 	-- Loop through database
 	if Keyed and Keyed.db.factionrealm then
 		for uid, entry in pairs (Keyed.db.factionrealm) do
+			ood = math.floor((entry.time - keyedReset) / keyedWeek) < tuesdays
 			if entry.uid and entry.name and entry.name ~= "" then
 				maxLevel = 0
 				mapID = nil
-				if entry.weeklybest.level and entry.weeklybest.mapID then
+				if entry.weeklybest.level and entry.weeklybest.mapID and not ood then
 					maxLevel = entry.weeklybest.level
 					mapID = entry.weeklybest.mapID
 				end
 				if entry.keystones and (#entry.keystones > 0) then
 					name, dungeon, level, id, lootable, affixes = ExtractKeystoneData (entry.keystones[1])
 					if name == nil then end
-					ood = math.floor((entry.time - keyedReset) / keyedWeek) < tuesdays
+					-- ood = math.floor((entry.time - keyedReset) / keyedWeek) < tuesdays
 					if not ood or KEYED_OOD then
 						number = number + 1
 						table.insert (data, {

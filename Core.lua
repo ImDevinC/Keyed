@@ -178,6 +178,8 @@ function Keyed:OnCommReceived (prefix, message, channel, sender)
 		local mapID = arguments[4]
 		local mythicLevel = arguments[5]
 		local time = tonumber(arguments[6])
+		self.db.factionrealm[uid].weeklybest.mapID = nil
+		self.db.factionrealm[uid].weeklybest.level = 0
 		if mapID and mythicLevel and self.db.factionrealm[uid].time <= time then
 			self.db.factionrealm[uid].weeklybest.mapID = mapID
 			self.db.factionrealm[uid].weeklybest.level = mythicLevel
