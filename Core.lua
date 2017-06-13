@@ -175,14 +175,17 @@ function Keyed:OnCommReceived (prefix, message, channel, sender)
 	elseif arguments[1] == weeklyBestRequest then
 		player = arguments[2]
 		uid = arguments[3]
-		local mapID = arguments[4]
-		local mythicLevel = arguments[5]
-		local time = tonumber(arguments[6])
-		self.db.factionrealm[uid].weeklybest.mapID = nil
-		self.db.factionrealm[uid].weeklybest.level = 0
-		if mapID and mythicLevel and self.db.factionrealm[uid].time <= time then
-			self.db.factionrealm[uid].weeklybest.mapID = mapID
-			self.db.factionrealm[uid].weeklybest.level = mythicLevel
+		if #arguments > 4 then
+			local mapID = arguments[4]
+			local mythicLevel = arguments[5]
+			local time = tonumber(arguments[6])
+			if mapID and mythicLevel and self.db.factionrealm[uid].time <= time then
+				self.db.factionrealm[uid].weeklybest.mapID = mapID
+				self.db.factionrealm[uid].weeklybest.level = mythicLevel
+			end
+		else
+			self.db.factionrealm[uid].weeklybest.mapID = nil
+			self.db.factionrealm[uid].weeklybest.level = 0
 		end
 	end
 end
@@ -222,11 +225,11 @@ function Keyed:SendWeeklyBest(target)
 	local uid = UnitGUID("player")
 	local name = UnitName("player")
 	local mapID, level = self:GetWeeklyBest()
-	
+	local message = weeklyBestRequest .. ";" .. name .. ";" .. uid .. ";"
 	if level and mapID then
-		local message = weeklyBestRequest .. ";" .. name .. ";" .. uid .. ";" .. mapID .. ";" .. level .. ";" .. tostring(GetServerTime()) .. ";"
-		self:SendResponse(target, message)
+		 message = message .. mapID .. ";" .. level .. ";" .. tostring(GetServerTime()) .. ";"
 	end
+	self:SendResponse(target, message)
 end
 
 function Keyed:FindKeystones()

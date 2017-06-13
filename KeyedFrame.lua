@@ -86,10 +86,7 @@ function KeystoneList_Update ()
 	if numKeystones > KEYSTONES_TO_DISPLAY then
 		showScrollBar = 1
 	end
-
-	local SetDepleted = function(fontString)
-		fontString:SetTextColor(0.6, 0.6, 0.6, 1.0)
-	end
+	
 	local SetHighlighted = function(fontString)
 		fontString:SetTextColor(GameFontHighlightSmall:GetTextColor())
 	end
@@ -111,7 +108,6 @@ function KeystoneList_Update ()
 			button.dungeon = keystoneData[keystoneIndex].dungeon
 			button.level = tostring(keystoneData[keystoneIndex].level)
 			button.link = keystoneData[keystoneIndex].link
-			button.depleted = keystoneData[keystoneIndex].depleted
 			button.ood = keystoneData[keystoneIndex].ood
 			button.maxLevel = keystoneData[keystoneIndex].maxLevel
 			if keystoneData[keystoneIndex].mapID ~= nil then
@@ -124,7 +120,6 @@ function KeystoneList_Update ()
 			buttonText:SetText(button.maxLevel)
 			buttonText = _G["KeystoneListFrameButton" .. i .. "Dungeon"];
 			buttonText:SetText (button.dungeon);
-			if button.depleted or button.ood then SetDepleted(buttonText) else SetHighlighted(buttonText) end
 			if showScrollBar then
 				buttonText:SetWidth (155)
 			else
@@ -132,7 +127,6 @@ function KeystoneList_Update ()
 			end
 			buttonText = _G["KeystoneListFrameButton" .. i .. "Level"];
 			buttonText:SetText (button.level);
-			if button.depleted or button.ood then SetDepleted(buttonText) else SetHighlighted(buttonText) end
 			button:Show()
 		else
 			button:Hide()
@@ -178,18 +172,17 @@ function GetKeystoneData ()
 					mapID = entry.weeklybest.mapID
 				end
 				if entry.keystones and (#entry.keystones > 0) then
-					name, dungeon, level, id, lootable, affixes = ExtractKeystoneData (entry.keystones[1])
+					name, dungeon, level, id, affixes = ExtractKeystoneData(entry.keystones[1])
 					if name == nil then end
-					-- ood = math.floor((entry.time - keyedReset) / keyedWeek) < tuesdays
 					if not ood or KEYED_OOD then
 						number = number + 1
+						print(entry.keystones[1])
 						table.insert (data, {
 							name = entry.name,
 							class = entry.class,
 							dungeon = dungeon,
 							dungeonId = tonumber(id),
 							level = tonumber(level),
-							depleted = (tonumber(lootable) == 0),
 							ood = ood,
 							link = entry.keystones[1],
 							maxLevel = maxLevel,
@@ -216,12 +209,12 @@ function ExtractKeystoneData (hyperlink)
 	-- |cffa335ee|Hitem:138019::::::::110:63:6160384:::1466:7:5:4:1:::|h[Mythic Keystone]|h|r
 	local _, color, string, name, _, _ = strsplit ("|", hyperlink)
 	
-	-- Hkeystone:instMapId:level:lootable:affix1:affix2:affix3
-	-- Hkeystone:233:4:1:6:0:0
-	local Hitem, instMapId, plus, lootable, affixes = strsplit(':', string)
+	-- Hkeystone:instMapId:level:affix1:affix2:affix3
+	-- Hkeystone:233:4:6:0:0
+	local Hitem, instMapId, plus, affix1, affix2, affix3 = strsplit(':', string)
 	if not Hitem == "Hkeystone" then return nil end
 	local instanceName = GetMapNameFromID(instMapId)
-	return name, instanceName, plus, instMapId, lootable, affixes
+	return name, instanceName, plus, instMapId, affix1, affix2, affix3
 end
 
 function GetMapNameFromID(mapID)
