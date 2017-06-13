@@ -176,7 +176,6 @@ function GetKeystoneData ()
 					if name == nil then end
 					if not ood or KEYED_OOD then
 						number = number + 1
-						print(entry.keystones[1])
 						table.insert (data, {
 							name = entry.name,
 							class = entry.class,
